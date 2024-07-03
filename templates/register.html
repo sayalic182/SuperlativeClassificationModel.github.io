@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+  <!-- contact section -->
+  <section class="contact_section layout_padding-bottom mt-5">
+    <div class="container">
+      <div class="heading_container heading_center">
+        <h2>
+          Register Here
+        </h2>
+      </div>
+      <div class="row">
+        <div class="col-md-8 col-lg-6 mx-auto">
+          <div class="form_container">
+            <form action="" method="post">
+                {% csrf_token %}
+              <div>
+                <input type="text" placeholder="Your Name" name="fname" id="fname" />
+              </div>
+              <div>
+                <input type="text" placeholder="Your Last Name" name="lname" id="lname" />
+              </div>
+              <div>
+                <input type="email" placeholder="Your Email" name="email" id="email"/>
+              </div>
+              <div>
+                <input type="password" placeholder="Your Password" name="password"  id="password" />
+              </div>
+              <div>
+                <input type="password" placeholder="Your Password" name="repassword"  id="repassword" />
+              </div>
+              <div class="btn_box ">
+                <button type="submit"> 
+                  Register
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- end contact section -->
+
+
+
+
+{% endblock body %}

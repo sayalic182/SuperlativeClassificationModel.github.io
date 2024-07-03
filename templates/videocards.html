@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+{% block body %}
+
+<div class="container mt-5">
+  <h1>Video Data Training</h1>
+  <br>
+
+  {% if video_dict %}
+  <div class="row">
+    {% for key, values in video_dict.items %}
+
+    <div class="col-lg-6">
+      <div id="cardContainer">
+        <!-- Card with input title, camera, and upload buttons -->
+        <div class="card mb-3 shadow-lg p-3 mb-5 bg-body rounded">
+          <div class="card-header">
+            <h4>{{key}}</h4>
+          </div>
+          <div class="card-body">
+            <div class="row col-lg-12" style="height: 100px; overflow-y: auto;">
+              {% for value in values %}
+              <div class="col-lg-6 m-0">
+                  <video class="img-fluid mb-1" controls>
+                    <source src="{{ value }}"  type="video/mp4">
+                  </video>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div id="cardContainer">
+        <!-- Card with input title, camera, and upload buttons -->
+        <div class="card mb-3 shadow-lg p-3 mb-5 bg-body rounded">
+          <form action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card-header">
+              <div class="row col-lg-12">
+                <div class="col-lg-10">
+                  <input type="text" class="form-control" placeholder="Title" name="class_name" id="class_name"
+                    required>
+                </div>
+                <div class="col-lg-2">
+                  <button class="btn btn-danger" onclick="deleteCard(this)"><i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Camera Section -->
+              <div id="cameraSection1">
+                <button type="submit" name="capture_video" class="btn btn-dark"><i class="fa fa-camera"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-3 mb-lg-5">
+      <div class="card shadow-lg p-3 mb-5 bg-body rounded" style="width: 15rem;">
+        <div class="card-body">
+          <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h5 class="card-title">Training</h5>
+            <button type="submit" class="btn btn-outline-dark w-100 mt-4" name="train">Train Model</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-3 mb-lg-5">
+      <div class="card shadow-lg p-3 bg-body rounded" style="width: 20rem;">
+        <div class="card-body">
+          <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h5 class="card-title">Preview</h5>
+            <button type="submit" class="btn btn-outline-dark w-100" name="test"> <i class='fas fa-file-export'></i>Open Camera
+              </button>
+            <hr>
+            <p>You must train a model on the left before you can preview it here.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Add button to create a new card -->
+  <button class="btn btn-outline-dark m-2 w-25" onclick="addCard()">Add Class</button>
+  <form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <button class="btn btn-success m-2 w-25" type="submit" name="download_model">Download Trained Package</button>
+  </form>
+  <a href="{% url 'projects' %}" class="btn btn-dark m-2 w-25">Go to Dashboard</a>
+</div>
+
+<script>
+  var currentVideoElement = null; // Variable to store the current video element
+  var currentImageCaptureSection = null; // Variable to store the current image capture section
+
+  function addCard() {
+    // Turn off the camera of the previous card, if any
+    stopCamera();
+
+    // Create a new card element
+    var newCard = document.createElement('div');
+    newCard.className = 'card mb-3 shadow-lg p-3 mb-5 bg-body rounded';
+
+    // Define the card header
+    var cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header';
+    cardHeader.innerHTML = `
+      <div class="row col-lg-12">
+          <div class="col-lg-10">
+              <input type="text" class="form-control" placeholder="Title" name="class" required>
+          </div>
+          <div class="col-lg-2">
+              <button class="btn btn-danger" onclick="deleteCard(this)"><i class="fa fa-trash"></i></button>
+          </div>
+      </div>
+  `;
+    newCard.appendChild(cardHeader);
+
+    // Define the card body
+    var cardBody = document.createElement('div');
+    cardBody.className = 'card-body';
+    cardBody.innerHTML = `
+      <div id="cameraSection${document.querySelectorAll('.card').length + 1}">
+          <button class="btn btn-dark" onclick="openCamera(${document.querySelectorAll('.card').length + 1})"><i class="fa fa-camera"></i></button>
+      </div>
+      <div id="imageCaptureSection${document.querySelectorAll('.card').length + 1}" class="row" style="max-height: 300px; overflow-y: auto;"></div>
+  `;
+    newCard.appendChild(cardBody);
+
+    // Append the new card to the container
+    var cardContainer = document.getElementById('cardContainer');
+    cardContainer.appendChild(newCard);
+  }
+
+  function deleteCard(button) {
+    // Get the card element and remove it from the container
+    var card = button.closest('.card');
+    card.remove();
+  }
+
+  function openCamera(cardNumber) {
+    // If camera is already open for a class, stop it before opening for another class
+    if (currentVideoElement) {
+      stopCamera();
+    }
+
+    // Access the video element
+    var videoElement = document.createElement('video');
+    videoElement.setAttribute('autoplay', '');
+    videoElement.setAttribute('playsinline', '');
+    videoElement.style.height = '150px'; // Adjust the height as needed
+
+    // Access the user's camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(function (stream) {
+        // Attach the camera stream to the video element
+        videoElement.srcObject = stream;
+        // Replace the button with the video element
+        var cameraSection = document.getElementById(`cameraSection${cardNumber}`);
+        cameraSection.innerHTML = '';
+        cameraSection.appendChild(videoElement);
+
+        // Store the current video element
+        currentVideoElement = videoElement;
+
+        // Create a capture button
+        var captureButton = document.createElement('button');
+        captureButton.className = 'btn btn-primary mt-2';
+        captureButton.innerText = 'Capture Image';
+        captureButton.onclick = function () {
+          captureImage(videoElement, cardNumber); // Call function to capture image
+          captureButton.style.display = 'none'; // Hide the capture button after capturing an image
+        };
+        cameraSection.appendChild(captureButton);
+
+        // Store the current image capture section
+        currentImageCaptureSection = document.getElementById(`imageCaptureSection${cardNumber}`);
+      })
+      .catch(function (error) {
+        console.error('Error accessing the camera:', error);
+      });
+  }
+
+  function stopCamera() {
+    if (currentVideoElement) {
+      // Stop the camera stream and remove the video element
+      var stream = currentVideoElement.srcObject;
+      var tracks = stream.getTracks();
+      tracks.forEach(function (track) {
+        track.stop();
+      });
+      currentVideoElement.srcObject = null;
+      currentVideoElement = null;
+    }
+  }
+
+
+
+</script>
+
+{% endblock body %}

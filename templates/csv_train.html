@@ -1,0 +1,52 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+<!-- contact section -->
+<section class="contact_section layout_padding-bottom mt-5">
+    <div class="container">
+        <div class="heading_container heading_center">
+            <h2>
+                Train Data File
+            </h2>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-6 mx-auto">
+                <div class="form_container">
+                    <form action="" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div>
+                            <h4>Instructions : </h4>
+                            <p> 1. Prepare your CSV data file, ensuring it's correctly formatted.<br>
+                                2. Identify the target column, ensuring it's the last column.<br>
+                                3. Upload the CSV file, verifying data accuracy.<br>
+                                4. Rearrange columns if needed, ensuring the target column is last.<br>
+                                5. Proceed with analysis or modeling tasks.<br>
+                                6. Keep a backup of the original dataset.<br></p>
+                        </div>
+                        <div>
+                            <label>Model Name</label>
+                            <input type="text" placeholder="E.g. Model123" name="model_name" id="model_name" required
+                                pattern="[A-Za-z0-9]+">
+                        </div>
+                        <div>
+                            <label>Upload CSV File</label>
+                            <input type="file" placeholder="Upload CSV File" name="uploaded_file" id="uploaded_file"
+                                accept=".csv" required />
+                        </div>
+                        <div class="btn_box ">
+                            <button type="submit" class="mx-2" name="train">
+                                Train Dataset
+                            </button>
+                            <button type="button" class="mx-2" style="background-color: rgb(54, 54, 54);">
+                                <a href="projects" style="color: white;"> Go to Dashboard</a>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- end contact section -->
+{% endblock body %}

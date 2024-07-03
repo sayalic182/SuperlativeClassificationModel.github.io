@@ -1,0 +1,42 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+<!-- contact section -->
+<section class="contact_section layout_padding-bottom mt-5">
+    <div class="container">
+        <div class="heading_container heading_center">
+            <h2>
+                Test Data File
+            </h2>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-6 mx-auto">
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <div class="form_container" style="height: 500px; overflow-y: auto;">
+                        {% for feature in feature_names %}
+                        <label> Enter Value of {{feature}}</label>
+                        <input type="number" name="{{feature}}" value="0">
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <button type="submit" name="test"  class="btn btn-danger mx-2 mt-4">
+                            Predict
+                        </button>
+                        <button type="button" class="btn btn-dark mx-2 mt-4" style="background-color: rgb(54, 54, 54);">
+                            <a href="csv_train" style="color: white;"> Back</a>
+                        </button>
+                        <form action="" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <button class="btn btn-success mx-2 mt-4" type="submit" name="download_model">Download
+                                Trained Package</button>
+                        </form>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- end contact section -->
+{% endblock body %}

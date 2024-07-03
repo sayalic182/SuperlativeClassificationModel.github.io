@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Example</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        #videoElement {
+            width: 100%;
+            height: auto;
+        }
+
+        .image-col img {
+            width: 50%;
+            height: auto;
+        }
+
+        #imageCaptureSection {
+            max-height: 200px;
+            /* Set a fixed height for the card */
+            overflow-y: auto;
+            /* Add a vertical scrollbar if needed */
+        }
+
+        .image-col {
+            padding: 5px 10px;
+            /* Reduce the gap between images */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div id="cardContainer">
+                    <!-- Card with input title, camera, and upload buttons -->
+                    <div class="card mb-3 shadow-lg p-3 mb-5 bg-body rounded">
+                        <div class="card-header">
+                            <div class="row col-lg-12">
+                                <div class="col-lg-10">
+                                    <input type="text" class="form-control" placeholder="Title" required>
+                                </div>
+                                <div class="col-lg-2">
+                                    <button class="btn btn-danger" onclick="deleteCard()"><i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="card-body">
+                            <!-- Camera Section -->
+                            <div id="cameraSection">
+                                <button class="btn btn-dark" onclick="openCamera()"><i class="fa fa-camera"></i>
+                                </button>
+                                
+                            </div>
+                            <!-- Image Capture Section -->
+                            <div id="imageCaptureSection" class="row">
+                                <!-- Images captured from the camera or selected from file picker will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var videoStream; // To store reference to the camera stream
+
+        function openCamera() {
+            // Access the video element
+            var videoElement = document.createElement('video');
+            videoElement.setAttribute('autoplay', true);
+            videoElement.setAttribute('id', 'videoElement');
+
+            // Access the user's camera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    videoStream = stream; // Store the reference to the stream
+                    videoElement.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.error('Error accessing the camera: ', error);
+                });
+
+            // Append video element to the camera section
+            var cameraSection = document.getElementById('cameraSection');
+            cameraSection.innerHTML = ''; // Clear previous content
+            cameraSection.appendChild(videoElement);
+
+            // Create button to capture images
+            var captureButton = document.createElement('button');
+            captureButton.className = 'btn btn-success mt-1';
+            captureButton.innerHTML = '<i class="fa fa-camera"></i> Capture Images';
+            captureButton.onclick = captureImages;
+            cameraSection.appendChild(captureButton);
+        }
+
+        function openFilePicker() {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            input.style.display = 'none';
+            input.addEventListener('change', handleFileSelect);
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        function handleFileSelect(event) {
+            var files = event.target.files;
+            var imageContainer = document.getElementById('imageCaptureSection');
+
+            // Clear previous images
+            imageContainer.innerHTML = '';
+
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var img = new Image();
+                    img.src = e.target.result;
+                    img.style.maxWidth = '100%';
+
+                    var col = document.createElement('div');
+                    col.className = 'col-md-4 mt-2';
+                    col.appendChild(img);
+
+                    imageContainer.appendChild(col);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function captureImages() {
+            // Access video element
+            var video = document.getElementById('videoElement');
+
+            // Create canvas element to capture images
+            var canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            var context = canvas.getContext('2d');
+
+            // Access the image container
+            var imageContainer = document.getElementById('imageCaptureSection');
+            imageContainer.innerHTML = ''; // Clear previous images
+
+            // Capture and display images
+            while (true) {
+                // Draw video frame onto the canvas
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Create image element to display captured image
+                var img = new Image();
+                img.src = canvas.toDataURL('image/jpeg');
+                img.style.maxWidth = '100%'; // Set maximum width of the image
+
+                // Create column for the image
+                var col = document.createElement('div');
+                col.className = 'col-md-4 mt-2'; // Adjust column width as needed
+                col.appendChild(img);
+
+                // Append column to the image container
+                imageContainer.appendChild(col);
+
+                // Check if all images are captured
+                if (imageContainer.children.length >= 50) {
+                    break;
+                }
+
+                // Wait for 500 milliseconds before capturing the next image
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            // Stop the camera stream
+            stopCamera();
+
+            // Remove camera section
+            var cameraSection = document.getElementById('cameraSection');
+            cameraSection.innerHTML = '';
+        }
+
+        function stopCamera() {
+            if (videoStream) {
+                // Get tracks associated with the camera stream
+                var tracks = videoStream.getTracks();
+                // Stop each track
+                tracks.forEach(function (track) {
+                    track.stop();
+                });
+            }
+        }
+        function deleteCard() {
+            var cardContainer = document.getElementById('cardContainer');
+            cardContainer.innerHTML = '';
+        }
+    </script>
+
+</body>
+
+</html>
